@@ -5,18 +5,12 @@
 package socketserver.view;
 
 import socketserver.model.ModelClient;
-import socketserver.service.ServerService;
 
 public class Connections extends javax.swing.JFrame {
     
-    ServerService srvService;
-    ModelClient mdl;
-    
-    public Connections(ServerService srvService, ModelClient mdl) {
+    public Connections(ModelClient mdl) {
         initComponents();
         tbClients.setModel(mdl);
-        this.mdl = mdl;
-        this.srvService = srvService;
     }
 
     /**
@@ -48,7 +42,7 @@ public class Connections extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(tbClients);
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("Conexões");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -64,9 +58,10 @@ public class Connections extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 268, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE))
         );
 
         pack();

@@ -4,6 +4,8 @@
  */
 package socketclient.view;
 
+import java.awt.event.*;
+import java.awt.event.WindowAdapter;
 import socketclient.service.ChatService;
 
 public class Chat extends javax.swing.JFrame {

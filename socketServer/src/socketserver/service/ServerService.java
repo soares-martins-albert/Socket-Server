@@ -198,17 +198,17 @@ public class ServerService {
         int hour = time.getHour();
         int minute = time.getMinute();
         
-        msg = sender.getName()+" ("+hour+":"+minute+"): "+msg;
+        msg = "("+hour+":"+minute+") "+ sender.getName()+": "+msg;
         
         return msg;
     }
     
     private void disconnectClient(Client clt){
         Client srv = model.getClientAt(0);
-            
-        streamMsg(clt.getName()+" saiu" , srv);
 
         model.removeClientByIpPort(clt.getIp()+"p"+clt.getPort());
+        
+        streamMsg(clt.getName()+" saiu" , srv);
     }
     
     private void toggleButtons(){
