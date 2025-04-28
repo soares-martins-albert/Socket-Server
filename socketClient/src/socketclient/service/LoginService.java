@@ -1,66 +1,135 @@
 package socketclient.service;
 
-import socketclient.view.Chat;
 import socketclient.view.Login;
 
 import javax.swing.*;
 import java.io.*;
-import java.net.Socket;
+import java.net.*;
 
 public class LoginService {
 
     private final Login loginFrame;
-    private Socket socket;
-    private BufferedReader reader;
-    private PrintWriter writer;
 
     public LoginService(Login loginFrame) {
         this.loginFrame = loginFrame;
     }
 
-    public void connect() {
+    public Boolean connect() {
         
         String userName = Login.getTxtUserName().getText().trim();
         String userIP = Login.getTxtUserIP().getText().trim();
-        String userPort = Login.getTxtUserPort().getText().trim();
+        String userPortStr = Login.getTxtUserPort().getText().trim();
         String serverIP = Login.getTxtServerIP().getText().trim();
         String serverPortStr = Login.getTxtServerPort().getText().trim();
 
-        if (userName.isEmpty() || userIP.isEmpty() || userPort.isEmpty() || serverIP.isEmpty() || serverPortStr.isEmpty()) {
+        if(!validateFields(userName,userIP,userPortStr,serverIP,serverPortStr)){
+            return false;
+        }
+        
+        int serverPort = Integer.parseInt(serverPortStr);
+        int userPort = Integer.parseInt(userPortStr);
+
+        boolean sent = sendEnterMsg(serverIP, serverPort, userIP, userPort, userName);
+        boolean connected = sent && awaitServerResponse(serverIP, userPort);
+        
+        if(connected){ toggleButtons(); }
+        
+        return connected;
+    }
+   
+    public Boolean validateFields(String userName, String userIP, String userPortStr, 
+                                  String serverIP, String serverPortStr){
+        
+        if (userName.isEmpty() || userIP.isEmpty() || userPortStr.isEmpty() || 
+            serverIP.isEmpty() || serverPortStr.isEmpty()) {
             JOptionPane.showMessageDialog(loginFrame, "Todos os campos devem ser preenchidos.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
-
-        int serverPort;
+        
         try {
-            serverPort = Integer.parseInt(serverPortStr);
+            Integer.valueOf(serverPortStr);
+            Integer.valueOf(userPortStr);
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(loginFrame, "A porta do servidor deve ser um número válido.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-            return;
+            JOptionPane.showMessageDialog(loginFrame, "As portas informadas devem ser números válidos.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
+        
+        if((!userPortStr.isEmpty() && Integer.valueOf(userPortStr) > 65535) || 
+           (!serverPortStr.isEmpty() && Integer.valueOf(serverPortStr) > 65535)){
+            
+            JOptionPane.showMessageDialog(loginFrame, "As portas informadas devem ser números válidos.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    private Boolean sendEnterMsg(String serverIP, int serverPort, String userIP, int userPort, String userName) {
+        
+        var msg = userIP+"p"+userPort+" \\enter "+userName;
 
-        try {
-            socket = new Socket(serverIP, serverPort);
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = new PrintWriter(socket.getOutputStream(), true);
+        try (Socket sendSocket = new Socket(serverIP, serverPort);
+             var doutSend = new DataOutputStream(sendSocket.getOutputStream())) {
 
-            String mensagem = "/enter " + userName + " " + userIP + " " + userPort;
-            writer.println(mensagem);
-
-            String resposta = reader.readLine();
-            if (resposta != null && resposta.equalsIgnoreCase("OK")) {
-                JOptionPane.showMessageDialog(loginFrame, "Conectado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-
-                Chat chatFrame = new Chat();
-                chatFrame.setVisible(true);
-                loginFrame.dispose(); 
-            } else {
-                JOptionPane.showMessageDialog(loginFrame, "Falha na conexão: resposta inesperada do servidor.", "Erro", JOptionPane.ERROR_MESSAGE);
-                socket.close();
-            }
+            doutSend.writeUTF(msg);
+            doutSend.flush();
+            
+            return true;
 
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(loginFrame, "Erro ao conectar no servidor: " + e.getMessage(), "Erro de Conexão", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(loginFrame, "Erro na comunicação com o servidor.","Erro", JOptionPane.ERROR_MESSAGE);
+            
+            return false;
         }
+    }
+    
+    public boolean awaitServerResponse(String serverIP, int userPort) {
+        ServerSocket serverSocket;
+        Socket clientSocket;
+
+        try {
+            serverSocket = new ServerSocket(userPort);
+            serverSocket.setSoTimeout(30000);
+
+            clientSocket = serverSocket.accept();
+            InetAddress clientAddress = clientSocket.getInetAddress();
+            String senderIP = clientAddress.getHostAddress();
+            
+            if(senderIP.equals(serverIP)){
+                
+                serverSocket.close();
+                return true;
+            }
+            
+            serverSocket.close();
+
+        } catch (SocketTimeoutException e) {
+            JOptionPane.showMessageDialog(loginFrame, "O servidor não respondeu.","Erro", JOptionPane.ERROR_MESSAGE);
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+        
+        return false;
+    }
+    
+    public void toggleButtons(){
+        
+        if(Login.btnEnter.isEnabled()){
+            
+            Login.btnEnter.setEnabled(false);
+            Login.txtUserName.setEnabled(false);
+            Login.txtUserPort.setEnabled(false);
+            Login.txtServerPort.setEnabled(false);
+            Login.txtServerIP.setEnabled(false);
+            
+        }else{
+            Login.btnEnter.setEnabled(true);
+            Login.txtUserName.setEnabled(true);
+            Login.txtUserPort.setEnabled(true);
+            Login.txtServerPort.setEnabled(true);
+            Login.txtServerIP.setEnabled(true);
+        }
+        
     }
 }

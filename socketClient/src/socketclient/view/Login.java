@@ -163,7 +163,13 @@ public class Login extends javax.swing.JFrame {
 
     private void btnEnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnterActionPerformed
         LoginService loginSvc = new LoginService(this);
-        loginSvc.connect();
+        if(loginSvc.connect()){
+            Chat chatFrame = new Chat(getTxtUserIP().getText(),
+                                      Integer.valueOf(getTxtUserPort().getText()),
+                                      getTxtServerIP().getText(),
+                                      Integer.valueOf(getTxtServerPort().getText()));
+            chatFrame.setVisible(true);
+        }
     }//GEN-LAST:event_btnEnterActionPerformed
 
     /**
@@ -200,8 +206,8 @@ public class Login extends javax.swing.JFrame {
                 new Login().setVisible(true);
                 
                 try{
-                String ip = InetAddress.getLocalHost().getHostAddress();
-
+                    
+                    String ip = InetAddress.getLocalHost().getHostAddress();
                     getTxtUserIP().setText(ip);
                     getTxtUserPort().setText("4321");
 
@@ -215,7 +221,7 @@ public class Login extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnEnter;
+    public static javax.swing.JButton btnEnter;
     private javax.swing.JLabel ip;
     private javax.swing.JLabel ip2;
     private javax.swing.JLabel jLabel1;

@@ -4,16 +4,29 @@
  */
 package socketclient.view;
 
-/**
- *
- * @author Albert
- */
-public class Chat extends javax.swing.JFrame {
+import socketclient.service.ChatService;
 
+public class Chat extends javax.swing.JFrame {
+    
+    ChatService chatSvc = new ChatService();
+    int userPort, srvPort;
+    String srvIp, userIp;
+    
+    
     /**
      * Creates new form Chat
+     * @param userIP
+     * @param userPort
+     * @param srvIp
+     * @param srvPort
      */
-    public Chat() {
+    public Chat(String userIP, int userPort, String srvIp, int srvPort) {
+        chatSvc.startListening(userPort);
+        this.userIp = userIP;
+        this.userPort = userPort;
+        this.srvPort = srvPort;
+        this.srvIp = srvIp;
+        
         initComponents();
     }
 
@@ -37,11 +50,18 @@ public class Chat extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
+        txtChat.setEditable(false);
         txtChat.setColumns(20);
         txtChat.setRows(5);
+        txtChat.setFocusable(false);
         jScrollPane1.setViewportView(txtChat);
 
         btnEnviar.setText("Enviar");
+        btnEnviar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEnviarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -68,6 +88,11 @@ public class Chat extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
+        chatSvc.sendMsg(srvIp, srvPort, userIp, userPort, getTxtUserField().getText());
+        getTxtUserField().setText("");
+    }//GEN-LAST:event_btnEnviarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -99,7 +124,7 @@ public class Chat extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Chat().setVisible(true);
+                
             }
         });
     }
@@ -108,7 +133,23 @@ public class Chat extends javax.swing.JFrame {
     private static javax.swing.JButton btnEnviar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private static javax.swing.JTextArea txtChat;
+    public static javax.swing.JTextArea txtChat;
     private static javax.swing.JTextField txtUserField;
     // End of variables declaration//GEN-END:variables
+
+    public static javax.swing.JTextArea getTxtChat() {
+        return txtChat;
+    }
+
+    public static void setTxtChat(javax.swing.JTextArea aTxtChat) {
+        txtChat = aTxtChat;
+    }
+
+    public static javax.swing.JTextField getTxtUserField() {
+        return txtUserField;
+    }
+
+    public static void setTxtUserField(javax.swing.JTextField aTxtUserField) {
+        txtUserField = aTxtUserField;
+    }
 }
